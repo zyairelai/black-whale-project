@@ -71,6 +71,7 @@ def heikin_ashi(klines):
     heikin_ashi_df["candle"] = heikin_ashi_df.apply(valid_candle, axis=1)
 
     previous_candles = 2
+    heikin_ashi_df['bigger'] = heikin_ashi_df['body'] > heikin_ashi_df['body'].rolling(window=previous_candles).max().shift(1)
     heikin_ashi_df['higher'] = heikin_ashi_df['close'] > heikin_ashi_df['close'].rolling(window=previous_candles).max().shift(1)
     heikin_ashi_df['lower'] = heikin_ashi_df['close'] < heikin_ashi_df['close'].rolling(window=previous_candles).min().shift(1)
 
@@ -110,8 +111,8 @@ def valid_candle(HA):
     else: return "INDECISIVE"
 
 def long_short_signal(HA):
-    if HA['candle'] == "GREEN" and HA['trend'] == "UPTREND" and HA['higher']: return "LONG"
-    elif HA['candle'] == "RED" and HA['trend'] == "DOWNTREND" and HA['lower']: return "SHORT"
+    if HA['candle'] == "GREEN" and HA['trend'] == "UPTREND" and HA['higher'] and HA['bigger']: return "LONG"
+    elif HA['candle'] == "RED" and HA['trend'] == "DOWNTREND" and HA['lower'] and HA['bigger']: return "SHORT"
     else: return "-"
 
 def bybit_livermore(coin):
@@ -139,9 +140,11 @@ def bybit_livermore(coin):
 
     else:
         if direction['signal'].iloc[-1] == "LONG" and support['signal'].iloc[-1] == "LONG" and entry['signal'].iloc[-1] == "LONG":
+            market_open_long(pair, trade_qty)
             telegram_bot_sendtext(str(coin) + " 🥦 PUMPING 🥦")
 
         elif direction['signal'].iloc[-1] == "SHORT" and support['signal'].iloc[-1] == "SHORT" and entry['signal'].iloc[-1] == "SHORT":
+            market_open_short(pair, trade_qty)
             telegram_bot_sendtext(str(coin) + " 💥 GRAVITY 💥")
 
         else: print("🐺 WAIT 🐺")
