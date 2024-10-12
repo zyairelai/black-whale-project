@@ -64,9 +64,9 @@ def heikin_ashi(klines):
     heikin_ashi_df['high'] = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['high']).max(axis=1)
     heikin_ashi_df['low']  = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['low']).min(axis=1)
     heikin_ashi_df["color"] = heikin_ashi_df.apply(color, axis=1)
-    heikin_ashi_df["upper"] = heikin_ashi_df.apply(upper_wick, axis=1)
-    heikin_ashi_df["lower"] = heikin_ashi_df.apply(lower_wick, axis=1)
     heikin_ashi_df["body"] = abs(heikin_ashi_df['open'] - heikin_ashi_df['close'])
+    heikin_ashi_df["upper_wick"] = heikin_ashi_df.apply(upper_wick, axis=1)
+    heikin_ashi_df["lower_wick"] = heikin_ashi_df.apply(lower_wick, axis=1)
     heikin_ashi_df["indecisive"] = heikin_ashi_df.apply(is_indecisive, axis=1)
     heikin_ashi_df["candle"] = heikin_ashi_df.apply(valid_candle, axis=1)
 
@@ -101,7 +101,7 @@ def lower_wick(HA):
     else: return (HA['open'] - HA['low'] + HA['close'] - HA['low']) / 2
 
 def is_indecisive(HA):
-    if HA['upper'] > HA['body'] and HA['lower'] > HA['body']: return True
+    if HA['upper_wick'] > HA['body'] and HA['lower_wick'] > HA['body']: return True
     else: return False
 
 def valid_candle(HA):
@@ -126,13 +126,13 @@ def bybit_livermore(coin):
     # print(support)
 
     if response['size'] > '0':
-        if direction['close'].iloc[-1] < direction['close'].iloc[-1]:
+        if direction['close'].iloc[-1] < direction['close'].iloc[-1]: # or direction['upper_wick'].iloc[-1] > direction['body'].iloc[-1]:
             telegram_bot_sendtext(str(coin) + " 💰 CLOSED LONG 💰")
             market_close_long(pair)
         else: print(str(coin) + " HOLDING LONG ")
 
     elif response['size'] < '0':
-        if direction['close'].iloc[-1] > direction['close'].iloc[-1]:
+        if direction['close'].iloc[-1] > direction['close'].iloc[-1]: # or direction['lower_wick'].iloc[-1] > direction['body'].iloc[-1]:
             telegram_bot_sendtext(str(coin) + " 💰 CLOSED LONG 💰")
             market_close_short(pair)
         else: print(str(coin) + " HOLDING SHORT ")

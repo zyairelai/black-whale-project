@@ -28,13 +28,14 @@ def heikin_ashi(klines):
     heikin_ashi_df['high'] = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['high']).max(axis=1)
     heikin_ashi_df['low']  = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['low']).min(axis=1)
     heikin_ashi_df["color"] = heikin_ashi_df.apply(color, axis=1)
-    heikin_ashi_df["upper"] = heikin_ashi_df.apply(upper_wick, axis=1)
-    heikin_ashi_df["lower"] = heikin_ashi_df.apply(lower_wick, axis=1)
     heikin_ashi_df["body"] = abs(heikin_ashi_df['open'] - heikin_ashi_df['close'])
+    heikin_ashi_df["upper_wick"] = heikin_ashi_df.apply(upper_wick, axis=1)
+    heikin_ashi_df["lower_wick"] = heikin_ashi_df.apply(lower_wick, axis=1)
     heikin_ashi_df["indecisive"] = heikin_ashi_df.apply(is_indecisive, axis=1)
     heikin_ashi_df["candle"] = heikin_ashi_df.apply(valid_candle, axis=1)
 
     previous_candles = 2
+    heikin_ashi_df['bigger'] = heikin_ashi_df['body'] > heikin_ashi_df['body'].rolling(window=previous_candles).max().shift(1)
     heikin_ashi_df['higher'] = heikin_ashi_df['close'] > heikin_ashi_df['close'].rolling(window=previous_candles).max().shift(1)
     heikin_ashi_df['lower'] = heikin_ashi_df['close'] < heikin_ashi_df['close'].rolling(window=previous_candles).min().shift(1)
 
