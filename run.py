@@ -126,13 +126,13 @@ def bybit_livermore(coin):
     # print(support)
 
     if response['size'] > '0':
-        if support['close'].iloc[-1] < support['close'].iloc[-1]:
+        if direction['close'].iloc[-1] < direction['close'].iloc[-1]:
             telegram_bot_sendtext(str(coin) + " 💰 CLOSED LONG 💰")
             market_close_long(pair)
         else: print(str(coin) + " HOLDING LONG ")
 
     elif response['size'] < '0':
-        if support['close'].iloc[-1] > support['close'].iloc[-1]:
+        if direction['close'].iloc[-1] > direction['close'].iloc[-1]:
             telegram_bot_sendtext(str(coin) + " 💰 CLOSED LONG 💰")
             market_close_short(pair)
         else: print(str(coin) + " HOLDING SHORT ")
