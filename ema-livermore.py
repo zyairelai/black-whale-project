@@ -28,7 +28,11 @@ def heikin_ashi(klines):
     heikin_ashi_df['high'] = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['high']).max(axis=1)
     heikin_ashi_df['low']  = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['low']).min(axis=1)
     heikin_ashi_df["color"] = heikin_ashi_df.apply(color, axis=1)
-    heikin_ashi_df["body"]  = abs(heikin_ashi_df['open'] - heikin_ashi_df['close'])
+    heikin_ashi_df["upper"] = heikin_ashi_df.apply(upper_wick, axis=1)
+    heikin_ashi_df["lower"] = heikin_ashi_df.apply(lower_wick, axis=1)
+    heikin_ashi_df["body"] = abs(heikin_ashi_df['open'] - heikin_ashi_df['close'])
+    heikin_ashi_df["indecisive"] = heikin_ashi_df.apply(is_indecisive, axis=1)
+    heikin_ashi_df["candle"] = heikin_ashi_df.apply(valid_candle, axis=1)
 
     previous_candles = 2
     heikin_ashi_df['higher'] = heikin_ashi_df['close'] > heikin_ashi_df['close'].rolling(window=previous_candles).max().shift(1)
@@ -49,9 +53,29 @@ def color(HA):
     elif HA['open'] > HA['close']: return "RED"
     else: return "INDECISIVE"
 
+def upper_wick(HA):
+    if HA['color'] == "GREEN": return HA['high'] - HA['close']
+    elif HA['color'] == "RED": return HA['high'] - HA['open']
+    else: return (HA['high'] - HA['open'] + HA['high'] - HA['close']) / 2
+
+def lower_wick(HA):
+    if HA['color'] == "GREEN": return  HA['open'] - HA['low']
+    elif HA['color'] == "RED": return HA['close'] - HA['low']
+    else: return (HA['open'] - HA['low'] + HA['close'] - HA['low']) / 2
+
+def is_indecisive(HA):
+    if HA['upper'] > HA['body'] and HA['lower'] > HA['body']: return True
+    else: return False
+
+def valid_candle(HA):
+    if not HA['indecisive']:
+        if HA['color'] == "GREEN": return "GREEN"
+        elif HA['color'] == "RED": return "RED"
+    else: return "INDECISIVE"
+
 def long_short_signal(HA):
-    if HA['color'] == "GREEN" and HA['trend'] == "UPTREND" and HA['higher']: return "LONG"
-    elif HA['color'] == "RED" and HA['trend'] == "DOWNTREND" and HA['lower']: return "SHORT"
+    if HA['candle'] == "GREEN" and HA['trend'] == "UPTREND" and HA['higher']: return "LONG"
+    elif HA['candle'] == "RED" and HA['trend'] == "DOWNTREND" and HA['lower']: return "SHORT"
     else: return "-"
 
 def sleep_until_next_hour():
@@ -69,8 +93,8 @@ def ema_livermore(coin):
 
     print("Current 1h Trend  : " + direction['trend'].iloc[-1])
     print("Current 15m Trend : " + support['trend'].iloc[-1])
-    print("Current 1h candle : " + direction['color'].iloc[-1])
-    print("Current 15m candle: " + support['color'].iloc[-1])
+    print("Current 1h candle : " + direction['candle'].iloc[-1])
+    print("Current 15m candle: " + support['candle'].iloc[-1])
 
     if direction['signal'].iloc[-1] == "LONG" and support['signal'].iloc[-1] == "LONG":
         print(colored(str(coin) + " 🥦 PUMPING 🥦", "green"))
