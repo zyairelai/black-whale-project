@@ -122,7 +122,7 @@ def bybit_livermore(coin):
 
     direction = heikin_ashi(get_klines(coin, "1h"))
     support = heikin_ashi(get_klines(coin, "15m"))
-    entry = heikin_ashi(get_klines(coin, "5m"))
+    entry = heikin_ashi(get_klines(coin, "3m"))
     # print(direction)
     # print(support)
 
