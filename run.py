@@ -122,28 +122,27 @@ def bybit_livermore(coin):
 
     direction = heikin_ashi(get_klines(coin, "1h"))
     support = heikin_ashi(get_klines(coin, "15m"))
-    entry = heikin_ashi(get_klines(coin, "3m"))
     # print(direction)
     # print(support)
 
     if response['size'] > '0':
-        if entry['color'].iloc[-1] == "RED" and entry['close'].iloc[-1] < entry['ema_9'].iloc[-1]:
+        if support['close'].iloc[-1] < support['close'].iloc[-1]:
             telegram_bot_sendtext(str(coin) + " 💰 CLOSED LONG 💰")
             market_close_long(pair)
         else: print(str(coin) + " HOLDING LONG ")
 
     elif response['size'] < '0':
-        if entry['color'].iloc[-1] == "GREEN" and entry['close'].iloc[-1] > entry['ema_9'].iloc[-1]:
+        if support['close'].iloc[-1] > support['close'].iloc[-1]:
             telegram_bot_sendtext(str(coin) + " 💰 CLOSED LONG 💰")
             market_close_short(pair)
         else: print(str(coin) + " HOLDING SHORT ")
 
     else:
-        if direction['signal'].iloc[-1] == "LONG" and support['signal'].iloc[-1] == "LONG" and entry['signal'].iloc[-1] == "LONG":
+        if direction['signal'].iloc[-1] == "LONG" and support['signal'].iloc[-1] == "LONG":
             market_open_long(pair, trade_qty)
             telegram_bot_sendtext(str(coin) + " 🥦 PUMPING 🥦")
 
-        elif direction['signal'].iloc[-1] == "SHORT" and support['signal'].iloc[-1] == "SHORT" and entry['signal'].iloc[-1] == "SHORT":
+        elif direction['signal'].iloc[-1] == "SHORT" and support['signal'].iloc[-1] == "SHORT":
             market_open_short(pair, trade_qty)
             telegram_bot_sendtext(str(coin) + " 💥 GRAVITY 💥")
 
