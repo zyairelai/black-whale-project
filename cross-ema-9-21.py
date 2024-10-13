@@ -1,8 +1,8 @@
 #!/bin/python3
 
 import ccxt, pandas, requests, time, os
-from datetime import datetime
 from termcolor import colored
+from datetime import datetime, timedelta, timezone
 
 def telegram_bot_sendtext(bot_message):
     bot_token = os.environ.get('TELEGRAM_LIVERMORE')
@@ -14,7 +14,7 @@ def telegram_bot_sendtext(bot_message):
 def get_klines(coin, interval):
     pair = coin + "/USDT"
     tohlcv_colume = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=11), columns=tohlcv_colume)
+    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=31), columns=tohlcv_colume)
 
 def heikin_ashi(klines):
     heikin_ashi_df = pandas.DataFrame(index=klines.index.values, columns=['open', 'high', 'low', 'close'])
@@ -48,26 +48,27 @@ def color(HA):
     elif HA['open'] > HA['close']: return "RED"
     else: return "INDECISIVE"
 
+def sleep_three_minutes():
+    current_utc_time = datetime.now(timezone.utc)
+    next_target = (current_utc_time + timedelta(minutes=3)).replace(second=0, microsecond=0)
+    next_target = next_target - timedelta(minutes=next_target.minute % 3)
+    sleep_duration = (next_target - current_utc_time).total_seconds()
+    print(f"Sleeping until {next_target.strftime('%H:%M:%S UTC')}")
+    time.sleep(sleep_duration)
+
 def ema_say_no_more(coin):
-    direction = heikin_ashi(get_klines(coin, "15m"))
+    direction = heikin_ashi(get_klines(coin, "3m"))
     # print(direction)
 
-    print("Current 15m Trend  : " + direction['trend'].iloc[-1])
-    print("Current 15m candle : " + direction['color'].iloc[-1])
+    if direction['trend'].iloc[-1] == "UPTREND" and direction['trend'].iloc[-2] == "DOWNTREND":
+        print(colored(str(coin) + " 🥦 CHANGING TO UPTREND 🥦 ", "green"))
+        telegram_bot_sendtext(str(coin) + " 🥦 CHANGING TO UPTREND 🥦")
+        sleep_three_minutes()
 
-    if direction['trend'].iloc[-1] == "DOWNTREND" and \
-        direction['color'].iloc[-1] == "GREEN" and \
-        direction['close'].iloc[-1] > direction['ema_9'].iloc[-1]:
-        print(colored(str(coin) + " ⚠️ REVERSAL ⚠️", "yellow"))
-        telegram_bot_sendtext(str(coin) + " ⚠️ REVERSAL ⚠️")
-        exit()
-
-    if direction['trend'].iloc[-1] == "UPTREND" and \
-        direction['color'].iloc[-1] == "RED" and \
-        direction['close'].iloc[-1] < direction['ema_9'].iloc[-1]:
-        print(colored(str(coin) + " ⚠️ REVERSAL ⚠️", "yellow"))
-        telegram_bot_sendtext(str(coin) + " ⚠️ REVERSAL ⚠️")
-        exit()
+    if direction['trend'].iloc[-1] == "DOWNTREND" and direction['trend'].iloc[-2] == "UPTREND":
+        print(colored(str(coin) + " 💥 CHANGING TO DOWNTREND 💥", "red"))
+        telegram_bot_sendtext(str(coin) + " 💥 CHANGING TO DOWNTREND 💥")
+        sleep_three_minutes()
 
     else: print("🐺 WAIT 🐺")
     print("Last action executed @ " + datetime.now().strftime("%H:%M:%S") + "\n")

@@ -50,7 +50,7 @@ def market_close_short(pair):
 def get_klines(coin, interval):
     pair = coin + "/USDT"
     tohlcv_colume = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=11), columns=tohlcv_colume)
+    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=31), columns=tohlcv_colume)
 
 def heikin_ashi(klines):
     heikin_ashi_df = pandas.DataFrame(index=klines.index.values, columns=['open', 'high', 'low', 'close'])
