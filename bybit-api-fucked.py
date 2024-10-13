@@ -118,7 +118,7 @@ def long_short_signal(HA):
 def bybit_livermore(coin):
     pair = coin + "USDT"
     response = position_information(pair)
-    # print(response)
+    print(response)
 
     six_hour = heikin_ashi(get_klines(coin, "6h"))
     one_hour = heikin_ashi(get_klines(coin, "1h"))
@@ -133,7 +133,7 @@ def bybit_livermore(coin):
 
     elif response['size'] < '0':
         if one_hour['close'].iloc[-1] > one_hour['close'].iloc[-2]:
-            telegram_bot_sendtext(str(coin) + " 💰 CLOSED LONG 💰")
+            telegram_bot_sendtext(str(coin) + " 💰 CLOSED SHORT 💰")
             market_close_short(pair)
         else: print(str(coin) + " HOLDING SHORT ")
 
@@ -162,3 +162,18 @@ try:
             print(e)
 
 except KeyboardInterrupt: print("\n\nAborted.\n")
+
+"""
+{'symbol': 'BTCUSDT', 'leverage': '75', 'autoAddMargin': 0, 'avgPrice': '62708', 'liqPrice': '63230.5', 
+'riskLimitValue': '2000000', 'takeProfit': '', 'positionValue': '62.708', 'isReduceOnly': False, 'tpslMode': 'Full', 
+'riskId': 1, 'trailingStop': '0', 'unrealisedPnl': '-0.0515', 'markPrice': '62759.5', 'adlRankIndicator': 2, 
+'cumRealisedPnl': '-0.87525494', 'positionMM': '0.34848968', 'createdTime': '1726421679032', 
+'positionIdx': 0, 'positionIM': '0.87105677', 'seq': 253027379299, 'updatedTime': '1728804202099', 
+'side': 'Sell', 'bustPrice': '', 'positionBalance': '0.87105677', 'leverageSysUpdatedTime': '', 
+'curRealisedPnl': '-0.0344894', 'size': '0.001', 'positionStatus': 'Normal', 'mmrSysUpdatedTime': '', 
+'stopLoss': '', 'tradeMode': 0, 'sessionAvgPrice': ''}
+reduce-only order has same side with current position (ErrCode: 110017) (ErrTime: 07:34:35).
+
+Request → POST https://api.bybit.com/v5/order/create: {"symbol": "BTCUSDT", "side": "Sell", 
+"order_type": "Market", "qty": "0", "reduce_only": true, "category": "linear", "position_idx": 0}.
+"""

@@ -57,15 +57,18 @@ def sleep_three_minutes():
     time.sleep(sleep_duration)
 
 def ema_say_no_more(coin):
+    main_1_hr = heikin_ashi(get_klines(coin, "1h"))
     direction = heikin_ashi(get_klines(coin, "3m"))
     # print(direction)
 
-    if direction['trend'].iloc[-1] == "UPTREND" and direction['trend'].iloc[-2] == "DOWNTREND":
+    if direction['trend'].iloc[-1] == "UPTREND" and direction['trend'].iloc[-2] == "DOWNTREND" and \
+        main_1_hr['color'].iloc[-1] == "GREEN" and main_1_hr['close'].iloc[-1] > main_1_hr['close'].iloc[-2]:
         print(colored(str(coin) + " 🥦 CHANGING TO UPTREND 🥦 ", "green"))
         telegram_bot_sendtext(str(coin) + " 🥦 CHANGING TO UPTREND 🥦")
         sleep_three_minutes()
 
-    if direction['trend'].iloc[-1] == "DOWNTREND" and direction['trend'].iloc[-2] == "UPTREND":
+    if direction['trend'].iloc[-1] == "DOWNTREND" and direction['trend'].iloc[-2] == "UPTREND" and \
+        main_1_hr['color'].iloc[-1] == "RED" and main_1_hr['close'].iloc[-1] < main_1_hr['close'].iloc[-2]:
         print(colored(str(coin) + " 💥 CHANGING TO DOWNTREND 💥", "red"))
         telegram_bot_sendtext(str(coin) + " 💥 CHANGING TO DOWNTREND 💥")
         sleep_three_minutes()
