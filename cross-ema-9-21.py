@@ -1,8 +1,8 @@
 #!/bin/python3
 
 import ccxt, pandas, requests, time, os
+from datetime import datetime
 from termcolor import colored
-from datetime import datetime, timedelta, timezone
 
 def telegram_bot_sendtext(bot_message):
     bot_token = os.environ.get('TELEGRAM_LIVERMORE')
@@ -14,7 +14,7 @@ def telegram_bot_sendtext(bot_message):
 def get_klines(coin, interval):
     pair = coin + "/USDT"
     tohlcv_colume = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=31), columns=tohlcv_colume)
+    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=101), columns=tohlcv_colume)
 
 def heikin_ashi(klines):
     heikin_ashi_df = pandas.DataFrame(index=klines.index.values, columns=['open', 'high', 'low', 'close'])
@@ -31,15 +31,14 @@ def heikin_ashi(klines):
     heikin_ashi_df["body"]  = abs(heikin_ashi_df['open'] - heikin_ashi_df['close'])
 
     previous_candles = 2
+    heikin_ashi_df['bigger'] = heikin_ashi_df['body'] > heikin_ashi_df['body'].rolling(window=previous_candles).max().shift(1)
     heikin_ashi_df['higher'] = heikin_ashi_df['close'] > heikin_ashi_df['close'].rolling(window=previous_candles).max().shift(1)
     heikin_ashi_df['lower'] = heikin_ashi_df['close'] < heikin_ashi_df['close'].rolling(window=previous_candles).min().shift(1)
 
-    # Calculate 9 EMA and 21 EMA in one line
     heikin_ashi_df['ema_9'] = heikin_ashi_df['close'].ewm(span=9, adjust=False).mean()
     heikin_ashi_df['ema_21'] = heikin_ashi_df['close'].ewm(span=21, adjust=False).mean()
-    heikin_ashi_df['trend'] = "-"
-    heikin_ashi_df.loc[heikin_ashi_df['ema_9'] > heikin_ashi_df['ema_21'], 'trend'] = "UPTREND"
-    heikin_ashi_df.loc[heikin_ashi_df['ema_9'] < heikin_ashi_df['ema_21'], 'trend'] = "DOWNTREND"
+    heikin_ashi_df['ema_50'] = heikin_ashi_df['close'].ewm(span=50, adjust=False).mean()
+    heikin_ashi_df['trend'] = heikin_ashi_df.apply(check_trend, axis=1)
 
     return heikin_ashi_df
 
@@ -48,30 +47,25 @@ def color(HA):
     elif HA['open'] > HA['close']: return "RED"
     else: return "INDECISIVE"
 
-def sleep_three_minutes():
-    current_utc_time = datetime.now(timezone.utc)
-    next_target = (current_utc_time + timedelta(minutes=3)).replace(second=0, microsecond=0)
-    next_target = next_target - timedelta(minutes=next_target.minute % 3)
-    sleep_duration = (next_target - current_utc_time).total_seconds()
-    print(f"Sleeping until {next_target.strftime('%H:%M:%S UTC')}")
-    time.sleep(sleep_duration)
+def check_trend(row):
+    if row['ema_9'] > row['ema_21'] and row['ema_21'] > row['ema_50']: return "UPTREND"
+    elif row['ema_9'] < row['ema_21'] and row['ema_21'] < row['ema_50']: return "DOWNTREND"
+    else: return "-"
 
 def ema_say_no_more(coin):
-    main_1_hr = heikin_ashi(get_klines(coin, "1h"))
+    one_hour = heikin_ashi(get_klines(coin, "1h"))
     direction = heikin_ashi(get_klines(coin, "3m"))
     # print(direction)
 
-    if direction['trend'].iloc[-1] == "UPTREND" and direction['trend'].iloc[-2] == "DOWNTREND" and \
-        main_1_hr['color'].iloc[-1] == "GREEN" and main_1_hr['close'].iloc[-1] > main_1_hr['close'].iloc[-2]:
-        print(colored(str(coin) + " 🥦 CHANGING TO UPTREND 🥦 ", "green"))
-        telegram_bot_sendtext(str(coin) + " 🥦 CHANGING TO UPTREND 🥦")
-        sleep_three_minutes()
+    if direction['trend'].iloc[-1] == "UPTREND" and one_hour['color'].iloc[-1] == "GREEN" and one_hour['higher'].iloc[-1]:
+        print(colored(str(coin) + " 🥦 PUMPING 🥦 ", "green"))
+        telegram_bot_sendtext(str(coin) + " 🥦 PUMPING 🥦")
+        exit()
 
-    if direction['trend'].iloc[-1] == "DOWNTREND" and direction['trend'].iloc[-2] == "UPTREND" and \
-        main_1_hr['color'].iloc[-1] == "RED" and main_1_hr['close'].iloc[-1] < main_1_hr['close'].iloc[-2]:
-        print(colored(str(coin) + " 💥 CHANGING TO DOWNTREND 💥", "red"))
-        telegram_bot_sendtext(str(coin) + " 💥 CHANGING TO DOWNTREND 💥")
-        sleep_three_minutes()
+    if direction['trend'].iloc[-1] == "DOWNTREND" and one_hour['color'].iloc[-1] == "RED" and one_hour['lower'].iloc[-1]:
+        print(colored(str(coin) + " 💥 GRAVITY 💥", "red"))
+        telegram_bot_sendtext(str(coin) + " 💥 GRAVITY 💥")
+        exit()
 
     else: print("🐺 WAIT 🐺")
     print("Last action executed @ " + datetime.now().strftime("%H:%M:%S") + "\n")
