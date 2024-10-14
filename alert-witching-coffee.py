@@ -32,7 +32,7 @@ def check_time():
 check_time()
 
 """
-0 4,6,7 * * * /usr/bin/python3 /path/to/your/script/alert-witching-coffee.py
-0 10 * * * /usr/bin/python3 /path/to/your/script/alert-witching-coffee.py
-30 10 * * * /usr/bin/python3 /path/to/your/script/alert-witching-coffee.py
+0 4,6,7 * * * /usr/bin/python3 /home/ubuntu/black-whale-project/alert-witching-coffee.py
+0 10 * * * /usr/bin/python3 /home/ubuntu/black-whale-project/alert-witching-coffee.py
+30 10 * * * /usr/bin/python3 /home/ubuntu/black-whale-project/alert-witching-coffee.py
 """
