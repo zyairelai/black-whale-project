@@ -1,6 +1,6 @@
 #!/bin/python3
 
-import ccxt, pandas, requests, os
+import ccxt, pandas, requests, time, os
 from datetime import datetime
 from termcolor import colored
 
@@ -52,23 +52,6 @@ def check_trend(row):
     elif row['ema_9'] < row['ema_21'] and row['ema_21'] < row['ema_50']: return "DOWNTREND"
     else: return "-"
 
-def read_last_trend():
-    if os.path.exists('/tmp/current_trend.txt'):
-        with open('/tmp/current_trend.txt', 'r') as file:
-            return file.read().strip()
-    return None
-
-def write_current_trend(trend):
-    with open('/tmp/current_trend.txt', 'w') as file:
-        file.write(trend)
-
-def check_trend_change(new_trend):
-    last_trend = read_last_trend()
-    if last_trend != new_trend:
-        write_current_trend(new_trend)
-        return True
-    return False
-
 def ema_say_no_more(coin):
     one_hour = heikin_ashi(get_klines(coin, "1h"))
     direction = heikin_ashi(get_klines(coin, "3m"))
@@ -76,21 +59,29 @@ def ema_say_no_more(coin):
 
     if direction['trend'].iloc[-1] == "UPTREND" and \
         one_hour['color'].iloc[-1] == "GREEN" and one_hour['higher'].iloc[-1] and one_hour['bigger'].iloc[-1]:
-        current_trend = "UP"
-        if check_trend_change(current_trend):
-            print(colored(str(coin) + " 🥦 PUMPING 🥦 ", "green"))
-            telegram_bot_sendtext(str(coin) + " 🥦 PUMPING 🥦")
+        print(colored(str(coin) + " 🥦 PUMPING 🥦 ", "green"))
+        telegram_bot_sendtext(str(coin) + " 🥦 PUMPING 🥦")
+        exit()
 
     if direction['trend'].iloc[-1] == "DOWNTREND" and \
         one_hour['color'].iloc[-1] == "RED" and one_hour['lower'].iloc[-1] and one_hour['bigger'].iloc[-1]:
-        current_trend = "DOWN"
-        if check_trend_change(current_trend):
-            print(colored(str(coin) + " 💥 GRAVITY 💥", "red"))
-            telegram_bot_sendtext(str(coin) + " 💥 GRAVITY 💥")
+        print(colored(str(coin) + " 💥 GRAVITY 💥", "red"))
+        telegram_bot_sendtext(str(coin) + " 💥 GRAVITY 💥")
+        exit()
 
-    else:
-        check_trend_change("NONE")
-        print("🐺 WAIT 🐺")
+    else: print("🐺 WAIT 🐺")
     print("Last action executed @ " + datetime.now().strftime("%H:%M:%S") + "\n")
 
-ema_say_no_more("BTC")
+coin = "BTC"
+print("\nMonitoring " + coin + "\n")
+
+try:
+    while True:
+        try:
+            ema_say_no_more(coin)
+            time.sleep(1)
+
+        except Exception as e:
+            print(e)
+
+except KeyboardInterrupt: print("\n\nAborted.\n")
