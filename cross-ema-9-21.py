@@ -53,13 +53,13 @@ def check_trend(row):
     else: return "-"
 
 def read_last_trend():
-    if os.path.exists('current_trend.txt'):
-        with open('current_trend.txt', 'r') as file:
+    if os.path.exists('/tmp/current_trend.txt'):
+        with open('/tmp/current_trend.txt', 'r') as file:
             return file.read().strip()
     return None
 
 def write_current_trend(trend):
-    with open('current_trend.txt', 'w') as file:
+    with open('/tmp/current_trend.txt', 'w') as file:
         file.write(trend)
 
 def check_trend_change(new_trend):
@@ -89,11 +89,8 @@ def ema_say_no_more(coin):
             telegram_bot_sendtext(str(coin) + " 💥 GRAVITY 💥")
 
     else:
-        current_trend = "NONE"
-        if check_trend_change(current_trend): print("🐺 WAIT 🐺")
+        check_trend_change("NONE")
+        print("🐺 WAIT 🐺")
     print("Last action executed @ " + datetime.now().strftime("%H:%M:%S") + "\n")
 
-coin = "BTC"
-print("\nMonitoring " + coin + "\n")
-
-ema_say_no_more(coin)
+ema_say_no_more("BTC")
