@@ -67,7 +67,7 @@ def fuck_alts(coin):
 
     if direction['low'].iloc[-1] < direction['low'].iloc[-2]: # direction['candle'].iloc[-1] != "GREEN" and 
         print(colored("💥 TIME TO SHORT 💥 " + coin, "red"))
-        telegram_bot_sendtext("💥 TIME TO SHORT 💥 " + coin, "red")
+        telegram_bot_sendtext("💥 TIME TO SHORT 💥 " + coin)
         exit()
 
     else: print("🐺 WAIT 🐺 " + coin)
