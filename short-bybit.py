@@ -14,7 +14,7 @@ def telegram_bot_sendtext(bot_message):
 def get_klines(coin, interval):
     pair = coin + "/USDT"
     tohlcv_colume = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-    return pandas.DataFrame(ccxt.binance().fetch_ohlcv(pair, interval , limit=101), columns=tohlcv_colume)
+    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=101), columns=tohlcv_colume)
 
 def heikin_ashi(klines):
     heikin_ashi_df = pandas.DataFrame(index=klines.index.values, columns=['open', 'high', 'low', 'close'])
@@ -65,9 +65,9 @@ def fuck_alts(coin):
     direction = heikin_ashi(get_klines(coin, "1h"))
     # print(direction)
 
-    if direction['low'].iloc[-1] < direction['low'].iloc[-2]: # direction['candle'].iloc[-1] != "GREEN" and 
+    if direction['close'].iloc[-1] < direction['close'].iloc[-2]:
         print(colored("💥 TIME TO SHORT 💥 " + coin, "red"))
-        telegram_bot_sendtext("💥 TIME TO SHORT 💥 " + coin)
+        telegram_bot_sendtext("💥 TIME TO SHORT 💥 " + coin + " on BYBIT")
         exit()
 
     else: print("🐺 WAIT 🐺 " + coin)
@@ -77,7 +77,8 @@ try:
     while True:
         try:
             fuck_alts("BTC")
-            fuck_alts("ARK")
+            fuck_alts("DEEP")
+            fuck_alts("SLP")
             time.sleep(1)
 
         except Exception as e:
