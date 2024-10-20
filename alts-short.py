@@ -30,7 +30,8 @@ def heikin_ashi(klines):
     return heikin_ashi_df
 
 def fuck_alts(coin):
-    direction = heikin_ashi(get_klines(coin, "6h"))
+    hour = 6
+    direction = heikin_ashi(get_klines(coin, str(hour) + "h"))
     # print(direction)
 
     if direction['close'].iloc[-1] < direction['close'].iloc[-2] and direction['low'].iloc[-1] < direction['low'].iloc[-2]:
@@ -45,8 +46,8 @@ try:
     while True:
         try:
             fuck_alts("BTC")
-
             time.sleep(1)
+
         except Exception as e:
             print(e)
 
