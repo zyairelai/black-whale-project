@@ -33,7 +33,7 @@ def fuck_alts(coin):
     direction = heikin_ashi(get_klines(coin, "1h"))
     # print(direction)
 
-    if direction['close'].iloc[-1] < direction['close'].iloc[-2]:
+    if direction['close'].iloc[-1] < direction['close'].iloc[-2] and direction['low'].iloc[-1] < direction['low'].iloc[-2]:
         print(colored("💥 TIME TO SHORT 💥 " + coin, "red"))
         telegram_bot_sendtext("💥 TIME TO SHORT 💥 " + coin + " on BYBIT")
         exit()
@@ -45,8 +45,6 @@ try:
     while True:
         try:
             fuck_alts("BTC")
-            fuck_alts("DEEP")
-            fuck_alts("SLP")
 
             time.sleep(1)
         except Exception as e:
