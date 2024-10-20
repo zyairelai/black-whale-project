@@ -75,13 +75,10 @@ def ema_say_no_more(coin):
     else: print("🐺 WAIT 🐺")
     print("Last action executed @ " + datetime.now().strftime("%H:%M:%S") + "\n")
 
-coin = "BTC"
-print("\nMonitoring " + coin + "\n")
-
 try:
     while True:
         try:
-            ema_say_no_more(coin)
+            ema_say_no_more("BTC")
             time.sleep(1)
 
         except Exception as e:
