@@ -30,12 +30,12 @@ def heikin_ashi(klines):
     return heikin_ashi_df
 
 def fuck_alts(coin):
-    direction = heikin_ashi(get_klines(coin, "1h"))
+    direction = heikin_ashi(get_klines(coin, "6h"))
     # print(direction)
 
     if direction['close'].iloc[-1] < direction['close'].iloc[-2] and direction['low'].iloc[-1] < direction['low'].iloc[-2]:
-        print(colored("💥 TIME TO SHORT 💥 " + coin, "red"))
-        telegram_bot_sendtext("💥 TIME TO SHORT 💥 " + coin + " on Binance")
+        print(colored("💥 SHORT ALTS 💥 " + coin, "red"))
+        telegram_bot_sendtext("💥 SHORT ALTS 💥 " + coin + " on Binance")
         exit()
 
     else: print("🐺 WAIT 🐺 " + coin)
