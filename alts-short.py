@@ -42,12 +42,6 @@ def fuck_alts(coin):
     else: print("🐺 WAIT 🐺 " + coin)
     print("Last action executed @ " + datetime.now().strftime("%H:%M:%S") + "\n")
 
-try:
-    while True:
-        try:
-            fuck_alts("BTC")
-
-        except Exception as e:
-            print(e)
-
-except KeyboardInterrupt: print("\n\nAborted.\n")
+fuck_alts("APT")
+fuck_alts("ALPHA")
+fuck_alts("1000CAT")
