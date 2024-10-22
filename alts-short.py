@@ -27,14 +27,14 @@ def heikin_ashi(klines):
     heikin_ashi_df.insert(0,'timestamp', klines['timestamp'])
     heikin_ashi_df['high'] = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['high']).max(axis=1)
     heikin_ashi_df['low']  = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['low']).min(axis=1)
+    heikin_ashi_df["body"]  = abs(heikin_ashi_df['open'] - heikin_ashi_df['close'])
     return heikin_ashi_df
 
 def fuck_alts(coin):
-    hour = 6
-    direction = heikin_ashi(get_klines(coin, str(hour) + "h"))
-    # print(direction)
+    direction = heikin_ashi(get_klines(coin, "6h"))
+    alt_dumping = direction['close'].iloc[-1] < direction['low'].iloc[-2]
 
-    if direction['close'].iloc[-1] < direction['close'].iloc[-2] and direction['low'].iloc[-1] < direction['low'].iloc[-2]:
+    if alt_dumping:
         print(colored("💥 SHORT ALTS 💥 " + coin, "red"))
         telegram_bot_sendtext("💥 SHORT ALTS 💥 " + coin + " on Binance")
         exit()
@@ -46,7 +46,6 @@ try:
     while True:
         try:
             fuck_alts("BTC")
-            time.sleep(1)
 
         except Exception as e:
             print(e)
