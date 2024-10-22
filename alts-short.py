@@ -1,8 +1,6 @@
 #!/bin/python3
 
 import ccxt, pandas, requests, os
-from datetime import datetime
-from termcolor import colored
 
 def telegram_bot_sendtext(bot_message):
     bot_token = os.environ.get('TELEGRAM_LIVERMORE')
@@ -35,13 +33,10 @@ def fuck_alts(coin):
     alt_dumping = direction['close'].iloc[-1] < direction['low'].iloc[-2]
 
     if alt_dumping:
-        print(colored("💥 SHORT ALTS 💥 " + coin, "red"))
+        print("💥 SHORT ALTS 💥 " + coin)
         telegram_bot_sendtext("💥 SHORT ALTS 💥 " + coin + " on Binance")
         exit()
 
     else: print("🐺 WAIT 🐺 " + coin)
-    print("Last action executed @ " + datetime.now().strftime("%H:%M:%S") + "\n")
 
-fuck_alts("APT")
-fuck_alts("ALPHA")
-fuck_alts("1000CAT")
+fuck_alts("BTC")
