@@ -1,6 +1,6 @@
 #!/bin/python3
 
-import ccxt, pandas, requests, time, os
+import ccxt, pandas, requests, os
 from datetime import datetime
 from termcolor import colored
 
