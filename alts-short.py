@@ -10,7 +10,7 @@ def telegram_bot_sendtext(bot_message):
     return response.json()
 
 def get_klines(coin, interval):
-    pair = coin + "/USDT"
+    pair = coin + "USDT"
     tohlcv_colume = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
     return pandas.DataFrame(ccxt.binance().fetch_ohlcv(pair, interval , limit=101), columns=tohlcv_colume)
 
@@ -25,18 +25,35 @@ def heikin_ashi(klines):
     heikin_ashi_df.insert(0,'timestamp', klines['timestamp'])
     heikin_ashi_df['high'] = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['high']).max(axis=1)
     heikin_ashi_df['low']  = heikin_ashi_df.loc[:, ['open', 'close']].join(klines['low']).min(axis=1)
+    heikin_ashi_df["color"] = heikin_ashi_df.apply(color, axis=1)
     heikin_ashi_df["body"]  = abs(heikin_ashi_df['open'] - heikin_ashi_df['close'])
     return heikin_ashi_df
 
-def fuck_alts(coin):
-    direction = heikin_ashi(get_klines(coin, "6h"))
-    alt_dumping = direction['close'].iloc[-1] < direction['low'].iloc[-2]
+def color(HA):
+    if HA['open'] < HA['close']: return "GREEN"
+    elif HA['open'] > HA['close']: return "RED"
+    else: return "INDECISIVE"
 
-    if alt_dumping:
+def fuck_alts(coin):
+    btc_direction = heikin_ashi(get_klines("BTC", "6h"))
+    btc_is_red = btc_direction['color'].iloc[-1] == "RED"
+
+    alt_direction = heikin_ashi(get_klines(coin, "6h"))
+    alt_dumping = alt_direction['low'].iloc[-1] < alt_direction['low'].iloc[-2] 
+
+    if btc_is_red and alt_dumping:
         print("💥 SHORT ALTS 💥 " + coin)
         telegram_bot_sendtext("💥 SHORT ALTS 💥 " + coin + " on Binance")
         exit()
 
     else: print("🐺 WAIT 🐺 " + coin)
 
-fuck_alts("BTC")
+try:
+    while True:
+        try:
+            fuck_alts("ETH")
+
+        except Exception as e:
+            print(e)
+
+except KeyboardInterrupt: print("\n\nAborted.\n")
