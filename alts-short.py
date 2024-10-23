@@ -10,9 +10,9 @@ def telegram_bot_sendtext(bot_message):
     return response.json()
 
 def get_klines(coin, interval):
-    pair = coin + "USDT"
+    pair = coin #+ "USDT"
     tohlcv_colume = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
-    return pandas.DataFrame(ccxt.binance().fetch_ohlcv(pair, interval , limit=101), columns=tohlcv_colume)
+    return pandas.DataFrame(ccxt.bybit().fetch_ohlcv(pair, interval , limit=101), columns=tohlcv_colume)
 
 def heikin_ashi(klines):
     heikin_ashi_df = pandas.DataFrame(index=klines.index.values, columns=['open', 'high', 'low', 'close'])
@@ -35,7 +35,7 @@ def color(HA):
     else: return "INDECISIVE"
 
 def fuck_alts(coin):
-    btc_direction = heikin_ashi(get_klines("BTC", "6h"))
+    btc_direction = heikin_ashi(get_klines("BTCUSDT", "6h"))
     btc_is_red = btc_direction['color'].iloc[-1] == "RED"
 
     alt_direction = heikin_ashi(get_klines(coin, "6h"))
@@ -43,17 +43,23 @@ def fuck_alts(coin):
 
     if btc_is_red and alt_dumping:
         print("💥 SHORT ALTS 💥 " + coin)
-        telegram_bot_sendtext("💥 SHORT ALTS 💥 " + coin + " on Binance")
-        exit()
+        telegram_bot_sendtext("💥 SHORT ALTS 💥 " + coin)
+        return True
 
-    else: print("🐺 WAIT 🐺 " + coin)
+    else:
+        print("🐺 WAIT 🐺 " + coin)
+        return False
+
+altcoins = ["1000CATUSDT",
+            "GOATUSDT",
+            "RADUSDT",
+            "ETHUSDT"]
 
 try:
-    while True:
+    while altcoins:
         try:
-            fuck_alts("ETH")
-
-        except Exception as e:
-            print(e)
-
-except KeyboardInterrupt: print("\n\nAborted.\n")
+            for coin in altcoins[:]:
+                if fuck_alts(coin): altcoins.remove(coin)
+        except Exception as e: print(e)
+except KeyboardInterrupt:
+    print("\n\nAborted.\n")
